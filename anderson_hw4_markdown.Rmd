@@ -1,0 +1,121 @@
+---
+title: The Effect of Recombinant Human Growth Hormone (rhGH) and Insulin-Like Growth
+  Factor-I (rhIGF-I) on Immune Response in Rhesus Monkeys
+author: "Matthew L. Anderson"
+date: "November 29, 2018"
+output:
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Methods
+Rhesus monkeys (n=20) were assinged to either rhGH (n=5), rhIGF-I (n=6), both rhGH and rhIGF-I (n=6) or a control (n=4). The assay for the in vivo function of the immune system relied on the response to an immunization with teanus toxoid. Means, standard deviations, standard errors, and 95% confidence intervals for the mean values are presented in Table 1. The data were analyzed using a 1-way ANOVA and a 2-way ANOVA to compare the immune responses in each group. A boxplot was used for a visual inspection of the data. Assumptions of normality of the residuals was checked using a qq plot and shapiro test. Homogeniety of varaince was also checked using residual plot and Leven's test using the mean. The F statistics and P-values were calcualted for each test as well as a contrasts to see the effect of each group on the model.
+
+#Results 
+
+```{r cars, echo=FALSE, message=FALSE, warning=FALSE}
+library(readr)
+library(car)
+monkeys <- read_csv("./monkeys.csv", col_names = TRUE)
+monkeys<-as.data.frame(monkeys)
+se <- function(x) sqrt(var(x)/length(x))
+```
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+mean_<-c(mean(monkeys[1:4,2]),mean(monkeys[5:10,2]),mean(monkeys[11:15,2]),mean(monkeys[16:20,2]))
+sd_<-c(sd(monkeys[1:4,2]),sd(monkeys[5:10,2]),sd(monkeys[11:15,2]),sd(monkeys[16:20,2]))
+sd_error<-c(se(monkeys[1:4,2]),se(monkeys[5:10,2]),se(monkeys[11:15,2]),se(monkeys[16:20,2]))
+ci_lower<-c((10.25-qt(0.975,df=4-1)*.4856267),(10.80-qt(0.975,df=6-1)*.5790797),(11.25-qt(0.975,df=5-1)*.2549510),
+            ((11.52-qt(0.975,df=5-1)*.2922328)))
+ci_upper<-c((10.25+qt(0.975,df=4-1)*.4856267),(10.80+qt(0.975,df=6-1)*.5790797),(11.25+qt(0.975,df=5-1)*.2549510),
+            ((11.52+qt(0.975,df=5-1)*.2922328)))
+summary_stat<-as.table(cbind(mean_,sd_,sd_error,ci_lower,ci_upper))
+rownames(summary_stat) <- c("control", "rhigf", "rhgh", "rhigf and rhgh")
+```
+
+Table 1 shows the summary statisitcs(mean, sd, se, lower, upper) for each group.
+
+```{r}
+summary_stat
+```
+Table 1. Summary statistics 
+
+```{r pressure, echo=FALSE}
+#first I want to just do a visual inspection of the data
+
+boxplot(monkeys$Response ~ monkeys$Group,
+        main="Immune Function by Treatment",
+        ylab="Immune Function",
+        ylim=c(9, 14),
+        xlab="Treatment",
+        col="grey",
+        boxwex=0.3)
+```
+Figure 1. Box Plot of Immune Function by Treatment
+
+
+```{r}
+# 1 way ANOVA Model 
+model1 <- lm(monkeys$Response ~ monkeys$Group, data = monkeys)
+anova(model1)
+summary(model1)
+```
+
+Using a 1-way ANOVA no differences in mean Immune Function were found between the groups (F=1.3917, P-value=0.2815). The data do not depart from a normal distribution using the qq plot of the residulas and a shapiro test(p-value = 0.9424). 
+```{r pressur, echo=FALSE}
+#assumptions of normality by checking QQ plot of residuals 
+plot(model1, which = 1) 
+```
+Figure 1. Residual Plot of Immune Function
+
+```{r pressuree, echo=FALSE}
+qqnorm(resid(model1)) 
+qqline(resid(model1))
+```
+Figure 2. QQ Plot of the Residuals 
+
+```{r}
+#Test for normality of response variable
+shapiro.test(resid(model1))
+```
+
+Using Leven's test for homogeniety of variance there is no evidence that the variances are unequal in each group.
+```{r message=FALSE, warning=FALSE}
+#Test for homogeniety of varaince 
+leveneTest(Response ~ Group, center = mean, data = monkeys)
+```
+
+
+Using a 2-way ANOVA no differences in mean Immune Function were found between the groups (F=1.3917, P-value=0.2815). The same assumptions of normality and equal variance are meet.
+```{r}
+# 2 way ANOVA Model
+
+#here I am creating two variables that assing a 0 or 1 to either containing rhigf or rhgh
+monkeys$rhgh  <- ifelse(monkeys$Group=="Control"|monkeys$Group=="rhIGF-I",0,1)  
+monkeys$rhigf<- ifelse(monkeys$Group=="Control"|monkeys$Group=="rhGH",0,1)   
+
+#running the model with the interaction term
+model2<-lm(Response ~ rhigf + rhgh + rhigf*rhgh, data = monkeys)
+anova(model2)
+summary(model2)
+```
+
+To show the individual effect of each group a contrast varaible was created. No significant effects were found. 
+```{r}
+#contrast and summary
+Anova(model2, contrasts = list(topic=contr.sum, sys=contr.sum, type=3))
+```
+
+
+
+
+
+
+
+
+
+

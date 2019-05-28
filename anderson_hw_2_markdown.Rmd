@@ -1,0 +1,146 @@
+---
+title: "Assessing the Relationship Between Cystatin C and DTPA GFR"
+author: "Matthew L. Anderson"
+date: "October 29, 2018"
+output:
+  pdf_document: default
+  html_document: default
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Introduction
+About 15% of US adults have Chronic Kidney disease. For many renal transplants are the only option to prolong life. In renal transplant recipients, Glomerular filtration rate (GFR) is the best assessment of renal function. Insulin clearance is the best measure of GFR, but is not always available in practice. Investigators want to determine if there is an association between a more practical measure and insulin GFR as an alternative to measure renal function in transplant recipients. A possible candidate is Cystatin C, a protein that can determine kidney function. If Cystatin C is associated with insulin GFR, it may have the potential to determine how healthy GFR is in renal transplant recipients and provide insight into patient renal health. Investigators examined data from Cystatin C and diethylenetriamine penta-acetic acid (DTPA GFR) clearance in 27 patients. 
+
+$\epsilon$ 
+
+$c_i$
+
+#Methods
+27 patients volunteered for this study. 1 blood sample was obtained from each patient and Cystatin C levels were measured in mg/L. GFR was measured using technetium radionuclide labeled diethylenetriamine penta-acetic acid (DTPA GFR) clearance (mL/min/1.73 m2). Cystatin C levels were recorded and inverse and log transformations were applied to the Cystatin C data. Normality of the data was assessed using QQ plots and Shapiro-Wilk normality test. Scatter plots were used to asses the linear relationship between each form of Cystatin C and the GFR. Correlation coefficient and tests of correlations were performed using Pearson's correlation if data appeared normal and Spearman's rho if data did not appear normal. Simple linear regression was performed with the dependent variable (DTPA GFR) with all of the possible independent variables. The residuals for each model were used to examine normality and constant variance. All test were two sided at the alpha=.05 level.
+
+#Results 
+
+### Normality Assessment 
+Data from the QQ plots showed that DTPA GFR, Inverse Cystatin C and Ln Cystatin C appear normal, while Cystatin C without any transformations does not appear normal. Shapiro-Wilk normality tests found DTPA GFR was normal (P-value=0.274), Cystatin C was not normal, (p-value=0.00069), Inverse Cystatin C was normal (p-value=0.612, Ln Cystatin C was normal (p-value=0.097).  
+
+```{r pressure, echo=FALSE, message=FALSE, warning=FALSE}
+#Matthew Anderson
+#HW #2 
+#10.26.2018
+
+#here I am setting my working directory on my computer
+#setwd("~/VCU/Biomedical_Data_1/HW2")
+
+#this library will enable the read_csv
+library(readr)
+
+#importing the gfr csv file
+gfr <- read_csv("~/VCU/Biomedical_Data_1/HW2/gfr.csv", col_names = FALSE)
+
+#getting each column and saving it as a vector 
+dpta<-as.vector(as.numeric(t(gfr[,1])))
+systc<-as.vector(t(gfr[,2]))
+systc_inv<-as.vector(t(gfr[,3]))
+systc_ln<-as.vector(t(gfr[,4]))
+
+library(car)
+
+#assesment of DTPA GFR
+qqPlot(dpta, distribution="norm", pch=1, envelope = .95, id=FALSE,
+ col.lines="Black", main="DTPA QQ Plot", ylab='DPTA GFR mL/min/1.73 m2', xlab='Normal Quantiles')
+
+#Test for normality 
+shapiro.test(dpta)
+
+#assesment of Cystatin C
+qqPlot(systc, distribution="norm", pch=1, envelope = .95, id=FALSE,
+       col.lines="black", main="Cystatin C QQ Plot", ylab='Cystatin C levels mg/L', xlab='Normal Quantiles')
+
+shapiro.test(systc)
+
+#assesment of Inverse Cystatin C
+qqPlot(systc_inv, distribution="norm", pch=1, envelope = .95, id=FALSE,
+       col.lines="Black", main="Inverse Cystatin C QQ Plot", ylab='Inverse Cystatin C levels mg/L', xlab='Normal Quantiles')
+
+shapiro.test(systc_inv)
+
+#assesment of Ln Cystatin
+qqPlot(systc_ln, distribution="norm", pch=1, envelope = .95, id=FALSE,
+       col.lines="Black", main="Ln Cystatin C QQ Plot", ylab='Ln Cystatin C levels mg/L', xlab='Normal Quantiles')
+
+shapiro.test(systc_ln)
+
+```
+### Scatter Plots and Correlation
+A scatter plot showed a significant negative correlation between Cystatin C levels and DPTA with a correlation  coefficient  of  -0.768 and p-value<0.0001. 
+
+Scatter plots showed a significant positive correlation between Inverse Cystatin C levels and DPTA with a correlation  coefficient  of  0.765 and p-value<0.0001. 
+
+Scatter plots showed a significant negative correlation between Log Cystatin C levels and DPTA with a correlation  coefficient  of  -0.734 and p-value<0.0001. 
+
+```{r pressuret, echo=FALSE, message=FALSE, warning=FALSE}
+#scatter plots 
+plot(systc,dpta, main="Scatterplot of DPTA and Cystatin C ", xlab="Cystatin C levels mg/L",
+     ylab="DPTA GFR mL/min/1.73 m2", pch = 20)
+
+cor.test(systc,dpta, method = "spearman", alternative = "two.sided")
+
+
+plot(systc_inv,dpta, main="Scatterplot of DPTA and Inverse Cystatin C ", xlab="Inv Cystatin C levels mg/L", 
+     ylab="DPTA GFR mL/min/1.73 m2", pch = 20)
+
+cor.test(systc_inv,dpta, method = "pearson", alternative = "two.sided")
+
+plot(systc_ln,dpta, main="Scatterplot of DPTA and Ln Cystatin C ", xlab="Ln Cystatin C levels mg/L", 
+     ylab="DPTA GFR mL/min/1.73 m2", pch = 20)
+
+cor.test(systc_ln,dpta, method = "pearson", alternative = "two.sided")
+```
+
+### Linear Regression and Residual Assessment 
+
+Linear Regression between Cystatin C and DPTA modeled an intercept of 72.983 p-value<0.0001. and a slope of -12.544 p-value<0.0001.The model showed a statistically significant linear relationship between Cystatin C and DPTA p-value<0.001. Assessment of the residual plot showed uniform residuals and is consistent with the assumption of equal variance. 
+
+Linear Regression between Inverse Cystatin C and DPTA modeled an intercept of -0.2317 p-value>0.05. and a slope of 93.0924 p-value<0.0001.The model showed a statistically significant linear relationship between Inverse Cystatin C and DPTA p-value<0.001.
+Assessment of the residual plot showed uniform residuals and is consistent with the assumption of equal variance.
+
+Linear Regression between Ln Cystatin C and DPTA modeled an intercept of  73.363 p-value<0.0001. and a slope of  -37.234 p-value<0.0001.The model showed a statistically significant linear relationship between Cystatin C and DPTA p-value<0.0001.
+Assessment of the residual plot showed uniform residuals and is consistent with the assumption of equal variance.
+
+
+
+
+```{r pressurett, echo=FALSE, message=FALSE, warning=FALSE}
+#simple linear regression
+systc_lr<- lm(dpta ~ systc)
+systc_resid<-resid(systc_lr)
+summary(systc_lr)
+plot(systc, systc_resid, ylab="Residuals", xlab="Cystatin C", main="Residual Plot Cystatin C") 
+abline(0, 0)   
+
+systc_inv_lr<- lm(dpta ~ systc_inv)
+systc_inv_resid<-resid(systc_inv_lr)
+summary(systc_inv_lr)
+plot(systc_inv, systc_inv_resid, ylab="Residuals", xlab="Inv Cystatin C", main="Residual Plot Inverse Cystatin C") 
+abline(0, 0) 
+
+systc_ln_lr<- lm(dpta ~ systc_ln)
+systc_ln_resid<-resid(systc_ln_lr)
+summary(systc_ln_lr)
+
+plot(systc_ln, systc_ln_resid, ylab="Residuals", xlab="Ln Cystatin C", main="Residual Plot Ln Cystatin C") 
+abline(0, 0) 
+
+```
+
+#Discussion 
+Based on our observed data, there appears to be an association between Cystatin C and DTPA GFR. Test of correlation showed a significant positive linear association between inverse Cystatin C levels and DPTA, while test of correlation between Cystatin C and DTPA GFR and Log Cystatin C and DTPA GFR showed a significant negative linear association. Simple Linear regression was performed however, Cystatin C levels showed evidence of non-normality. Using Inverse and Log transformations on the data will provide meet assumptions for linear regression. There are pros and cons associated with using Inverse and Log transformations of Cystatin C. The inverse transformation does not show outliers and shows a positive association which may be easier for clinicians to interpret compared to a negative association. The intercept for the model was not significant but the slope and the model overall was. 
+The log transformation does appear to have two outliers using the 1.5 IQR rule, 1.595, 1.546, but they are not extreme. The intercept and the slope for the model were significant. 
+
+Based on these results, Cystatin C has the potential to be an alternative to measure renal function in transplant recipients. Inverse Cystatin C should be used to measure renal function since it has a similar strength of correlation to non-inverse Cystatin C and is positively associated. Limitations of this study include a single sample of size 27. Future work should continue to investigate Cystatin C's potential to predict renal function in kidney transplant patients to provide an alternative to insulin clearance. 
+
+

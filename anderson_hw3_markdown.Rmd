@@ -1,0 +1,171 @@
+---
+title: 'Multiple Linear Regression Infection Risk at Hospital '
+author: "Matthew L. Anderson"
+date: "November 12, 2018"
+output:
+  html_document: default
+  pdf_document: default
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Methods
+
+Data from n = 113 hospitals in the United States were collected. Variables that may contribute to the likelihood that a hospital patient acquires an infection while hospitalized were measured. These variables include: 
+Infection Risk (InfctRsk), Average length of stay of patient (Stay), Average age of patients (Age),
+Measure of blood cultures (Culture), number of X-rays (Xray), Number of beds total (Beds), if the hospital is affiliated with a medical school (MedSchool), the geographical region(Region), the number of occupied beds (Census), and the number of full time nurses on staff (Nurses). In order to explain infection risk we build a parsimonious multiple linear regression model with the response variable Infection Risk and all of the predictor variables that data was collected. We first start with the full model, then aim to select the best model using model selection methods. The categorical variables were converted to factors and the full model was run. Then assumptions of the model such as normality and equal variance were checked using QQ plots of the residual for the response variable. Multiple collinearity was addressed assessing correlation between predictor variables and vif. Stepwise, forward, and backwards selection procedure were used and a "best" model was chosen taking all of this information into consideration. $R^2$ adjusted $R^2$, MSE and AIC were used to determine the best model and assumptions were checked again for the best model.
+
+
+
+
+#Results 
+
+Running the full model the estimates for the slopes of the intercept and the predictor variables figure. with an $R^2$ of .568 and adjusted $R^2$ of.521. The F test found the model to be significant F=12.07 df= 11, 101 p_value<.0001. Table shows the VIF values for each variable. 
+
+```{r pressure, echo=FALSE, message=FALSE, warning=FALSE}
+
+#this library will enable the read_csv
+library(readr)
+hospital <- read_csv("~/VCU/Biomedical_Data_1/HW3/hospital.csv")
+
+library(car)
+library(plyr)
+library(leaps)
+leaps( x=hospital[,3:11], y=hospital[,2], names=names(hospital)[3:11], method="Cp")
+#full model using lm function 
+full_model<-lm(hospital$InfctRsk~hospital$Stay + hospital$Age + hospital$Culture + hospital$Xray
+                 + hospital$Beds +  factor(hospital$MedSchool) + factor(hospital$Region)
+                 + hospital$Census + hospital$Nurses)
+
+summary(full_model)
+```
+
+VIF's for the full model
+```{r pressure25, echo=FALSE, message=FALSE, warning=FALSE}
+vif(full_model)
+
+```
+
+The residuals of the response variable and the QQ plot of the residuals show that the response variable is normally distributed. Shapiro's test for normality was not significant p-value = 0.3307 indicating no evidence of departure from normality. 
+```{r pressure1, echo=FALSE, message=FALSE, warning=FALSE}
+#assessment of normality of the response variable infection risk 
+#plot qq plot of residuals of response variable 
+plot(full_model, which=1)
+qqnorm(resid(full_model)) # A quantile normal plot - good for checking normality
+qqline(resid(full_model))
+
+#Test for normality of response variable
+shapiro.test(resid(full_model))
+```
+
+
+A correlation matrix was used to asses correlation between predictor variables. Spearman's rho was used to calculated correlation because some variables did not meet the assumptions of normality. Only correlation coefficients >.7 or <.7 were flagged as highly correlated. On those variables, correlation tests were used to determine if their correlation was significant. High correlation was seen between (census, beds),(Nurses, Beds),and (Nurses Census). VIF was also examined to determine which variables might need to be removed from the model along with the correlation and estimates of the slope. Beds and Census had high VIF values, >30, and non significant slopes. 
+```{r correlation, echo=FALSE, message=FALSE, warning=FALSE}
+
+#Correlation between predictors to determine collinearity 
+corrs<-cor(hospital,method = "spearman")
+corrs[lower.tri(corrs)] <- 0
+corrs[,10:11]
+```
+
+Correlation between Census, Beds
+```{r corr2, echo=FALSE, message=FALSE, warning=FALSE}
+cor.test(hospital$Census,hospital$Beds,method = "spearman")
+```
+
+Correlation between Nurses, Beds
+```{r corr3, echo=FALSE, message=FALSE, warning=FALSE}
+cor.test(hospital$Nurses,hospital$Beds,method = "spearman")
+```
+
+Correlation between Nurses, Census
+```{r corr4, echo=FALSE, message=FALSE, warning=FALSE}
+cor.test(hospital$Nurses,hospital$Census,method = "spearman")
+```
+
+The VIF's for the full model
+```{r pressure2, echo=FALSE, message=FALSE, warning=FALSE}
+#lets look at the vif
+vif(full_model)
+```
+
+Before variables were removed, stepwise, forward, and backwards variable selection as performed on the model.
+
+Forward selection did not change the model with an AIC value of -5.577.
+```{r pressure3, echo=FALSE, message=FALSE, warning=FALSE}
+#step wise regression 
+
+#I have a hunch to take out beds and census to account for vif and collinearity 
+library(MASS)
+
+stepwise_forward_reg<- stepAIC(full_model, direction="forward")
+stepwise_forward_reg$anova 
+```
+
+
+ Backwards removed, Age, then removed beds, then removed census, each time decreasing the AIC below -5.577 and eventually to -10.23.
+```{r pressuree, echo=FALSE, message=FALSE, warning=FALSE}
+
+stepwise_backward_reg <- stepAIC(full_model, direction="backward")
+stepwise_backward_reg$anova # display results
+```
+ Doing both directions or stepwise performed the same as backwards selection and removed Age, beds, census.Both stepwise 
+```{r pressuree2, echo=FALSE, message=FALSE, warning=FALSE}
+
+stepwise_both_reg <- stepAIC(full_model, direction="both")
+stepwise_both_reg$anova # display results
+```
+
+Best model
+```{r pressure23, echo=FALSE, message=FALSE, warning=FALSE}
+best_model<-lm(hospital$InfctRsk ~ hospital$Stay + hospital$Culture + hospital$Xray + 
+                 factor(hospital$MedSchool) + factor(hospital$Region) + hospital$Nurses)
+
+summary(best_model)
+anova(best_model)
+```
+
+The VIF's for the best model
+```{r pressure243, echo=FALSE, message=FALSE, warning=FALSE}
+vif(best_model)
+```
+The model selection from stepwise and backwards selection is consistent with the multiple collinearity assessed by correlation and vif and provides evidence to remove Age, Beds, and Census from the model. After this model was determined, the slopes of the predictors are all positive and significant. Also the vif is low for each predictor and the model produced an $R^2$ value of .5629, adjusted $R^2$ value of .5293, F= 16.74, df=8,104, and p_value <.0001. Residuals of the best model showed consistent variance and no evidence of deviation from normality. While the adjusted $R^2$ is not very different, this model is more parsimonious and has all significant predictors, and lower VIF's on its its predictors. 
+
+```{r pressure4, echo=FALSE, message=FALSE, warning=FALSE}
+best_model_residual<-resid(best_model)
+
+plot(hospital$InfctRsk, best_model_residual, ylab="Residuals", xlab="infection risk", main="Best Model Residuals") 
+abline(0, 0)   
+
+
+full_model_residual<-resid(full_model)
+
+plot(hospital$InfctRsk, full_model_residual, ylab="Residuals", xlab="infection risk", main="Full Model Residuals") 
+abline(0, 0)   
+```
+Similariry doing stepwise selection using both directions and Mallow's CP produced the same model removing Age, Census, and Beds.
+
+Its been determined that a possible best model for infection risk in the hospital is 
+$infection risk=-1.287 + .274*stay + .050*culture + .011*xray + .559*medschool + .313*region2 + .220*region3 + 1.013*region4 + .002*nurses$
+
+Here is the $R^2$, adjusted $R^2$,  MSE, and Cp for the origonal Model
+```{r pressure5, echo=FALSE, message=FALSE, warning=FALSE}
+#before
+data.frame("R_sqaured" = .568, "R_squared_adj" =.521, "Cp" =10.00,
+                      "MSE"=mean(full_model$residuals^2))
+
+```
+Here is the $R^2$, adjusted $R^2$,  MSE, and AIC for the Final Model
+```{r pressure6, echo=FALSE, message=FALSE, warning=FALSE}
+#after  
+
+data.frame("R_sqaured" = .5629, "R_squared_adj" =.5293, "Cp" =4.6886,
+                "MSE"=mean(best_model$residuals^2))
+
+```
+We were able to make a more parsimonious model by removing non informative predictors (Age, Beds, and Census) and maintain similar adjusted $R^2$, MSE, and decrease in Mallow's Cp slightly.
+
+

@@ -1,0 +1,252 @@
+---
+title: "HW"
+author: "Matthew L. Anderson"
+date: "December 7th 2018"
+output:
+  word_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Question 1
+## a
+H0: There are no differences between the mean infant birthweights in any of the three racial groups
+Ha: There is a difference between the mean infant birthweights in at least 1 of the three racial groups
+
+In order to ASSESS this claim, we will conduct a 1-way ANOVA. First we will provide a visual assesment of the data and summary statistics
+
+
+
+```{r cars, echo=FALSE, message=FALSE, warning=FALSE}
+library(readr)
+library(car)
+BMI <- read_csv("~/VCU/Biomedical_Data_1/HW5/BMI.csv", col_names = TRUE)
+
+BMI<-as.data.frame(BMI)
+```
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+boxplot(BMI$Birthweight ~ BMI$`Maternal Racial Group`,
+        main="Birthweight by Racial Group",
+        ylab="Weight",
+        ylim=c(1000, 5500),
+        xlab="Racial Group",
+        col="grey",
+        boxwex=0.3)
+
+#Summary Statistics of the data
+summary(BMI$Birthweight)
+hist(BMI$Birthweight)
+```
+
+Table 1 shows the summary statisitcs(mean, sd, se, lower, upper) for each group.
+BOxplot 
+
+1-way ANOVA Model
+```{r}
+#will perform one way anova to see difference in means
+
+# 1 way ANOVA Model 
+model_BMI <- lm(BMI$Birthweight ~  factor(BMI$`Maternal Racial Group`), data = BMI)
+anova(model_BMI)
+summary(model_BMI)
+```
+Table 1. Summary statistics 
+
+Assumptions of ANOVA Model 
+```{r pressure, echo=FALSE}
+#assumptions of normality by checking QQ plot of residuals 
+plot(model_BMI, which = 1) 
+qqnorm(resid(model_BMI)) 
+qqline(resid(model_BMI))
+```
+
+
+
+```{r}
+#Test for normality of response variable
+shapiro.test(resid(model_BMI))
+
+#Test for homogeniety of varaince 
+leveneTest(Birthweight ~ factor(`Maternal Racial Group`), center = mean, data = BMI)
+```
+
+
+Using a 1-way ANOVA no differences in infant birthweight were found between the groups (F=1.3917, P-value=0.2815). The data do not depart from a normal distribution using the qq plot of the residulas and a shapiro test(p-value = 0.9424). 
+
+## b
+```{r pressur, echo=FALSE}
+#Appears linear, some heteroskedacitity
+plot(BMI$Birthweight,BMI$`Maternal BMI`)
+```
+
+```{r}
+corrs<-cor(BMI$Birthweight, BMI$`Maternal BMI`, method = "spearman")
+
+full_model<-lm(BMI$Birthweight~ BMI$`Maternal BMI`)
+
+summary(full_model)
+```
+
+## c
+```{r pressureel, echo=FALSE}
+#assesment of normality of the response variable birthweight
+#plot qq plot of residuals of response variable 
+plot(full_model, which=1)
+plot(full_model, which=2)
+
+resid(full_model) #List of residuals
+plot(density(resid(full_model))) #A density plot
+qqnorm(resid(full_model)) # A quantile normal plot - good for checking normality
+qqline(resid(full_model))
+
+```
+Figure 2. QQ Plot of the Residuals 
+
+```{r}
+#Test for normality of response variable
+shapiro.test(resid(full_model))
+```
+
+
+#d
+```{r}
+ancova_1 <- aov(BMI$Birthweight ~ BMI$`Maternal BMI` + factor(`Maternal Racial Group`), data = BMI)
+# NOTE: covariate goes first!! NOTE: there is
+# no interaction
+summary(ancova_1)
+
+TukeyHSD(ancova_1)
+```
+
+
+
+
+
+#Question 2
+## a
+H0: There are no differences between the mean infant birthweights in any of the three racial groups
+Ha: There is a difference between the mean infant birthweights in at least 1 of the three racial groups
+
+In order to ASSESS this claim, we will conduct a 1-way ANOVA. First we will provide a visual assesment of the data and summary statistics
+
+
+```{r carsq, echo=FALSE, message=FALSE, warning=FALSE}
+HITS <- read_csv("~/VCU/Biomedical_Data_1/HW5/HITS.csv", col_names = TRUE)
+
+HITS<-as.data.frame(HITS)
+```
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+#first I want to just do a visual inspection of the data
+
+boxplot(HITS$HITS_Score ~ HITS$Group,
+        main="HITS Score by IPV Group",
+        ylab="HITS Score ",
+        ylim=c(0, 25),
+        xlab="IPV Group",
+        col="grey",
+        boxwex=0.3)
+
+#Summary Statistics of the data
+summary(HITS$HITS_Score)
+hist(HITS$HITS_Score)
+```
+
+Table 1 shows the summary statisitcs(mean, sd, se, lower, upper) for each group.
+BOxplot 
+
+1-way ANOVA Model
+```{r}
+# 1 way ANOVA Model 
+model_HITS <- lm(HITS$HITS_Score ~  factor(HITS$Group), data = HITS)
+anova(model_HITS)
+summary(model_HITS)
+
+```
+Table 1. Summary statistics 
+
+Assumptions of ANOVA Model 
+```{r pressurew, echo=FALSE}
+#assumptions of normality by checking QQ plot of residuals 
+plot(model_HITS, which = 1) 
+qqnorm(resid(model_HITS)) 
+qqline(resid(model_HITS))
+
+```
+
+
+
+```{r}
+#Test for normality of response variable
+shapiro.test(resid(model_HITS))
+
+#Test for homogeniety of varaince 
+leveneTest(HITS_Score ~ factor(Group), center = mean, data = HITS)
+
+```
+
+
+Using a 1-way ANOVA no differences in infant birthweight were found between the groups (F=1.3917, P-value=0.2815). The data do not depart from a normal distribution using the qq plot of the residulas and a shapiro test(p-value = 0.9424). 
+
+## b
+```{r pressuree, echo=FALSE}
+#Appears linear, some heteroskedacitity
+plot(HITS$HITS_Score,HITS$Age)
+```
+
+```{r}
+corrs<-cor(HITS$HITS_Score, HITS$Age, method = "pearson")
+
+full_model<-lm(HITS$HITS_Score~ HITS$Group)
+
+summary(full_model)
+corrs
+```
+
+## c
+```{r pressureea, echo=FALSE}
+#assesment of normality of the response variable birthweight
+#plot qq plot of residuals of response variable 
+plot(full_model, which=1)
+plot(full_model, which=2)
+
+resid(full_model) #List of residuals
+plot(density(resid(full_model))) #A density plot
+qqnorm(resid(full_model)) # A quantile normal plot - good for checking normality
+qqline(resid(full_model))
+
+```
+Figure 2. QQ Plot of the Residuals 
+
+```{r}
+#Test for normality of response variable
+shapiro.test(resid(full_model))
+```
+
+
+#d
+```{r}
+
+ancova_1 <- aov(HITS$HITS_Score ~ HITS$Age + factor(Group), data = HITS)
+# NOTE: covariate goes first!! NOTE: there is
+# no interaction
+summary(ancova_1)
+
+#TukeyHSD(ancova_1)
+
+```
+
+
+
+
+
+
+
+
+
